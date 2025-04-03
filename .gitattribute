@@ -1,0 +1,38 @@
+# Enable Git LFS for data files
+*.csv filter=lfs diff=lfs merge=lfs
+*.json filter=lfs diff=lfs merge=lfs
+*.parquet filter=lfs diff=lfs merge=lfs
+*.xml filter=lfs diff=lfs merge=lfs
+
+# Enable Git LFS for audio files
+*.mp3 filter=lfs diff=lfs merge=lfs
+*.wav filter=lfs diff=lfs merge=lfs
+*.flac filter=lfs diff=lfs merge=lfs
+
+# Enable Git LFS for video files
+*.mp4 filter=lfs diff=lfs merge=lfs
+*.mkv filter=lfs diff=lfs merge=lfs
+*.avi filter=lfs diff=lfs merge=lfs
+*.mov filter=lfs diff=lfs merge=lfs
+*.webm filter=lfs diff=lfs merge=lfs
+
+# Enable Git LFS for images
+*.png filter=lfs diff=lfs merge=lfs
+*.jpg filter=lfs diff=lfs merge=lfs
+*.jpeg filter=lfs diff=lfs merge=lfs
+*.gif filter=lfs diff=lfs merge=lfs
+*.tiff filter=lfs diff=lfs merge=lfs
+*.bmp filter=lfs diff=lfs merge=lfs
+*.svg filter=lfs diff=lfs merge=lfs
+
+# Enable Git LFS for archives
+*.zip filter=lfs diff=lfs merge=lfs
+*.tar filter=lfs diff=lfs merge=lfs
+*.gz filter=lfs diff=lfs merge=lfs
+*.rar filter=lfs diff=lfs merge=lfs
+*.7z filter=lfs diff=lfs merge=lfs
+
+# Enable Git LFS for document files
+*.pdf filter=lfs diff=lfs merge=lfs
+*.docx filter=lfs diff=lfs merge=lfs
+*.pptx filter=lfs diff=lfs merge=lfs

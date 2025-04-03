@@ -1,0 +1,25 @@
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Python virtual environments
+venv/
+env/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.pdb
+
+# Ignore macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Ignore macOS metadata
+.Spotlight-V100
+.Trashes
+.DS_Store
+.DS_Store?
+.fseventsd
