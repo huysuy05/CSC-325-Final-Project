@@ -1,6 +1,5 @@
 import time
 import pandas as pd
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -13,19 +12,26 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # Variable names for each data values
 TARGET_URL = "http://data.cityofchicago.org/stories/s/Crimes-2001-to-present-Dashboard/5cd6-ry5g"
-GRID_ROOT_SELECTOR = (By.CSS_SELECTOR, "div.ag-root-wrapper.ag-layout-normal")
-SCROLL_CONTAINER_SELECTOR = "div.ag-body-viewport"
-ROW_SELECTOR = "div.ag-center-cols-container div[role='row'].ag-row"
-CELL_SELECTOR = "div[role='gridcell'].ag-cell"
-HEADER_CONTAINER_SELECTOR = "div.ag-header-container"
-HEADER_CELL_SELECTOR = "div.ag-header-cell"
-HEADER_TEXT_SELECTOR = "span.ag-header-cell-text"
-NEXT_BUTTON = "//div[@class='ag-button ag-paging-button' and contains(@aria-label, 'Next Page')]"
-GRID_DATA_SELECTOR = (By.CSS_SELECTOR, ROW_SELECTOR)
 
-# We are only selecting a few data from here to reduce the size of the dataset
+# Table Elements Inspected from the URL
+GRID_ROOT_SELECTOR = (By.CSS_SELECTOR, "div.ag-root-wrapper.ag-layout-normal")
+
+# Row elements within the table div 
+ROW_SELECTOR = "div.ag-center-cols-container div[role='row'].ag-row"
+
+# Cell div within the row, which has a div containing the actual value
+CELL_SELECTOR = "div[role='gridcell'].ag-cell"
+
+# Next button elements so we can simulate clicking with selenium
+NEXT_BUTTON = "//div[@class='ag-button ag-paging-button' and contains(@aria-label, 'Next Page')]"
+
+
+# Since the actual data are huge (More than 8 million rows), 
+# We set a limit to how much data selenium can crawl
 NUM_TIMES_TO_EXECUTE = 100
+
 OUPUT_DIR = "datasets/crawled_crime_rate_chicago.csv"
+# --- COLUMN NAMES TO BE WRITTEN IN THE CSV FILE --- 
 COL_NAMES = ["id", 
              "CaseNumber", 
              "Date", 
@@ -53,7 +59,7 @@ print("--- STARTING CRAWLING PROCESS ---")
 
 
 # --- WEBDRIVER SETUP ---
-service = Service(ChromeDriverManager().install())
+service = Service(ChromeDriverManager().install()) #Chrome Drive manager to be able to run chrome
 driver = webdriver.Chrome(service=service)
 print(f"Navigating to {TARGET_URL}...")
 driver.get(TARGET_URL)
@@ -65,13 +71,11 @@ try:
     for _ in range(NUM_TIMES_TO_EXECUTE):
         try:
             WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located(GRID_ROOT_SELECTOR)
+                EC.presence_of_element_located(GRID_ROOT_SELECTOR) # Find the exact element of the table since it's an AG Grid
             )
-            # Locate to the page source after scrolling and waiting
-            page_src = driver.page_source
-            soup = BeautifulSoup(page_src, "html.parser")
             
-            # Find values by selecting all the grid cells inside the row
+            # Find cell data from with a row, for every row that is visible on the browser
+            # Use a method from selenium to query specific elements using Java Script
             rows_data = driver.execute_script("""
                 return Array.from(document.querySelectorAll('div[role="row"]')).map(row => {
                     return Array.from(row.querySelectorAll('div[role="gridcell"]')).map(cell => cell.innerText);
@@ -91,6 +95,7 @@ try:
                 next_btn = WebDriverWait(driver, 10).until(
                     EC.element_to_be_clickable((By.XPATH, NEXT_BUTTON))
                 )
+                # Debugging statements
                 if not next_btn:
                     print("Could not locate the next button. Quitting the program...")
                     break
@@ -124,7 +129,6 @@ try:
         print("No data was saved during the crawling process.")
     else:
         try:
-            # Create a pandas df
             df = pd.DataFrame(all_data, columns=COL_NAMES)
             df.to_csv(OUPUT_DIR, index=False)
             print(f"Data saved successfully to {OUPUT_DIR}")
