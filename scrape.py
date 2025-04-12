@@ -1,6 +1,8 @@
 import time
-import pandas as pd
+import os
 from selenium import webdriver
+from selenium.webdriver import ActionChains
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,39 +11,44 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 
 
+# --- FUNCTION TO WAIT FOR EXPORTING FILE --- 
+def wait_for_download(path, timeout=120):
+    secs = 0
+    while secs < timeout:
+        files = os.listdir(path)
+        downloading = [f for f in files if f.endswith(".crdownload")]
+        if not downloading and len(files) > 0:
+            return True
+        time.sleep(1)
+        secs += 1
+    return False
+
 
 # Variable names for each data values
 TARGET_URL = "http://data.cityofchicago.org/stories/s/Crimes-2001-to-present-Dashboard/5cd6-ry5g"
 
-# Table Elements Inspected from the URL
-GRID_ROOT_SELECTOR = (By.CSS_SELECTOR, "div.ag-root-wrapper.ag-layout-normal")
+# Table element
+GRID_ROOT_SELECTOR = (By.CSS_SELECTOR, '[data-block-id="clientSideId_10"]')
 
-# Row elements within the table div 
-ROW_SELECTOR = "div.ag-center-cols-container div[role='row'].ag-row"
+# Data locator button to export data
+DATA_LOCATOR_BUTTON = '[data-testid="vertical-kabob"]'
 
-# Cell div within the row, which has a div containing the actual value
-CELL_SELECTOR = "div[role='gridcell'].ag-cell"
+# Export data button
+EXPORT_DATA_BTN = '[data-testid="export-data-link"]'
 
-# Next button elements so we can simulate clicking with selenium
-NEXT_BUTTON = "//div[@class='ag-button ag-paging-button' and contains(@aria-label, 'Next Page')]"
+# Download data button
+DOWNLOAD_DATA_BTN = '[data-testid="export-download-button"]'
 
-# Horizontal scroll for AG Grid
-HORIZONTAL_SCROLL = "div.ag-body-horizontal-scroll-viewport"
-
-
-# Since the actual data are huge (More than 8 million rows), 
-# We set a limit to how much data selenium can crawl
-NUM_TIMES_TO_EXECUTE = 2
-
-OUPUT_DIR = "datasets/crawled_crime_rate_chicago.csv"
-# --- COLUMN NAMES TO BE WRITTEN IN THE CSV FILE --- 
-COL_NAMES = [
-    "ID", "CaseNo", "Date", "Block", "IUCR", "PrimaryType", "SecondaryType", 
-    "LocDesc", "Arrest", "Domestic", "Beat", "District", "Ward", "CommunityArea", 
-    "FBI", "XCoord", "YCoord", "Year", "UpdatedOn", "Lat", "Long", "Location", 
-    "HistWard", "Zip", "CommArea", "CensusTract", "WardName", "ZipBound", 
-    "PoliceDistrict", "PoliceBeat"
-]
+# Set the path to export the file to
+OUTPUT_DIR = os.path.abspath("../datasets")
+chrome_options = Options()
+prefs = {
+    "download.default_directory": OUTPUT_DIR,  # ← Your download folder
+    "download.prompt_for_download": False,
+    "directory_upgrade": True,
+    "safebrowsing.enabled": True
+}
+chrome_options.add_experimental_option("prefs", prefs)
 
 
 print("--- STARTING CRAWLING PROCESS ---")
@@ -49,104 +56,65 @@ print("--- STARTING CRAWLING PROCESS ---")
 
 # --- WEBDRIVER SETUP ---
 service = Service(ChromeDriverManager().install()) #Chrome Drive manager to be able to run chrome
-driver = webdriver.Chrome(service=service)
-print("Navigating to the website...")
+driver = webdriver.Chrome(service=service, options=chrome_options)
+print("   --> Navigating to the website...")
 driver.get(TARGET_URL)
 
 
 # --- SCRAPING LOOP ---
-all_data = [] #Array to be saved later
 try:
-    print(f"--- CRAWLING, LOCKING INNNN ---")
-    for _ in range(NUM_TIMES_TO_EXECUTE):
-        try:
-            WebDriverWait(driver, 60).until(
-                EC.presence_of_element_located(GRID_ROOT_SELECTOR) # Find the exact element of the table since it's an AG Grid
-            )
-
-            # Scroll horizontally
-            scroll_container = driver.find_element(By.CSS_SELECTOR, HORIZONTAL_SCROLL)
-            last_scroll_pos = 0
-
-            # Current position
-            while True:
-                # All data in a row after scrolling
-                all_row_data = []
-                # Find cell data from with a row, for every row that is visible on the browser
-                # Use a method from selenium to query specific elements using Java Script
-                rows_data = driver.execute_script("""
-                    return Array.from(document.querySelectorAll('div.ag-center-cols-container div[role="row"]')).map(row => {
-                        const cells = row.querySelectorAll('div[role="gridcell"]');
-                        return Array.from(cells).map(cell => cell.innerText.trim());
-                    });
-                """)
-                
-                all_data.append([row for row in rows_data])
-
-                # Scroll to the right
-                driver.execute_script("arguments[0].scrollLeft += 1000", scroll_container)
-                time.sleep(3)
-
-                curr_scroll_pos = driver.execute_script("return arguments[0].scrollLeft", scroll_container)
-                if curr_scroll_pos == last_scroll_pos:
-                    break
-                last_scroll_pos = curr_scroll_pos
-
-
-            all_data.append(all_row_data)
-
-            try:
-                # Locate the next button
-                next_btn = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, NEXT_BUTTON))
-                )
-                # Debugging statements
-                if not next_btn:
-                    print("Could not locate the next button. Quitting the program...")
-                    break
-
-                # Simulate clicking the next button and reset the screen to the default location
-                next_btn.click()
-                driver.execute_script("arguments[0].scrollLeft = 0", scroll_container)
-                # Wait for the JS to load all necessary file
-                time.sleep(3)
-            except TimeoutException:
-                print(f"Browser taking too long to load. Exiting...")
-            except NoSuchElementException:
-                print("Next button not found in the page. Exiting...")
-            except Exception as e:
-                print(f"An error occured during crawling process: {e}")
-
-
-
-        except TimeoutException:
-            print(f"Browser taking too long to load. Exiting...")
-            break
-        except NoSuchElementException:
-            print("Next button not found in the page. Exiting...")
-            break
-        except Exception as e:
-            print(f"An error occured during crawling process: {e}")
-            break
+    while True:
+        print(f"--- CRAWLING, LOCKING INNNN ---")
+        # Locate to the table element
+        table = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located(GRID_ROOT_SELECTOR)
+        )
+        data_btn = table.find_element(By.CSS_SELECTOR, DATA_LOCATOR_BUTTON)
         
+        # Scroll to view the button
+        driver.execute_script("arguments[0].scrollIntoView(true)", data_btn)
+        time.sleep(3)
+        print(f"    - Checking if the button is found: {data_btn.is_displayed()}")
+        print(f"    - Checking if the button is enable: {data_btn.is_enabled()}")
+        actions = ActionChains(driver)
+        actions.move_to_element(data_btn).click().perform()
+        time.sleep(10)
+        
+        WebDriverWait(driver, 5).until(
+        EC.visibility_of_element_located((By.CSS_SELECTOR, 'forge-popup[role="menu"]'))
+        )
+
+        # Locate to the export data button
+        export_btn = driver.find_element(By.CSS_SELECTOR, EXPORT_DATA_BTN)
+        print("Export button found..." if export_btn.is_displayed() else "Export button not found")
+        actions.move_to_element(export_btn).click().perform()
+        time.sleep(30)
+
+        # Download the data
+        if export_btn.is_displayed():
+            try:
+                download_btn = driver.find_element(By.CSS_SELECTOR, DOWNLOAD_DATA_BTN)
+                time.sleep(3)
+                actions.move_to_element(download_btn).click().perform()
+                if wait_for_download(OUTPUT_DIR):
+                    break
+            except TimeoutError:
+                print("Download button not found...")
+                break
+        
+
+
+except TimeoutException:
+    print(f"Browser taking too long to load. Exiting...")
     
-    # --- EXPORT TO A CSV FILE ---
-    if not all_data:
-        print("No data was saved during the crawling process.")
-    else:
-        try:
-            
-            df = pd.DataFrame(all_data)
-            df.to_csv(OUPUT_DIR, index=False)
-            print(f"Data saved successfully to {OUPUT_DIR}")
-        except Exception as e:
-            print(f"An error occured while writing the file: {e}")
-
+except NoSuchElementException:
+    print("Data locating button not found in the page. Exiting...")
+    
 except Exception as e:
-    print(f"--- Error while crawling: {e}")
-
+    print(f"An error occured during crawling process: {e}")
+    
 finally:
-    print("Closing browser...")
+    print("    Closing browser...")
     print("--- CRAWLING COMPLETE ---")
     driver.quit()
 
