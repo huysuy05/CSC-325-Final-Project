@@ -1,4 +1,5 @@
 selenium>=4.0.0
 webdriver-manager>=3.8.0
 pandas
-beautifulsoup4
+scikit-learn
+tensorflow
