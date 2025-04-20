@@ -5,12 +5,14 @@
 This project collects, processes, and visualizes Chicago crime data. It consists of two main parts:
 - **Data Crawling:** The `scrape.py` script uses Selenium with ChromeDriver to navigate to the Chicago crime dashboard, interact with UI elements (like the three-dots and export buttons), and download the dataset.
 - **Data Preprocessing & Visualization:** The `preprocess.ipynb` Jupyter Notebook reads and cleans the crawled data, then creates various visualizations (e.g., bar plots, heatmaps, trend analyses) to showcase crime patterns over the years.
+- **Crime Rate Prediction:** The `pred.py`file for impementing all the machine learning models used for this project.
 
 ## Project Structure
 ```
 ├── scrape.py                 # Data crawling script
+├── pred.py                   # Python file for predicting crime rate
 ├── preprocess.ipynb          # Notebook for data cleaning and visualization
-├── datasets/                 # Folder for downloaded datasets
+├── datasets/                 # Folder for crawled datasets
 ├── Resources and Demo/       # Demo assets including plots, videos, and project pipeline PDF
 │   ├── assault_plot.png
 │   ├── Crawled Data Example.png
@@ -22,7 +24,7 @@ This project collects, processes, and visualizes Chicago crime data. It consists
 │   ├── plot_location_description.png
 │   ├── Project Pipeline.pdf
 │   └── yearly_plot.png
-└── README.md                 # This file
+└── README.md                
 ```
 
 ## Setup
@@ -33,11 +35,11 @@ This project collects, processes, and visualizes Chicago crime data. It consists
 - pip package manager
 
 ### Dependencies
-Install the required packages via pip:
+### Installing Dependencies
+Install all required packages using the requirements file:
 ```
-pip install selenium webdriver-manager pandas numpy matplotlib seaborn pydeck
+pip install -r requirements.txt
 ```
-The project uses `webdriver-manager` to handle ChromeDriver automatically.
 
 ## Usage
 
