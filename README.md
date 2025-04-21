@@ -2,17 +2,21 @@
 #### Developed by Huy Nguyen, Anh Le 
 
 ## Overview
-This project collects, processes, and visualizes Chicago crime data. It consists of two main parts:
+This project collects, processes, and visualizes Chicago crime data. It consists of three main parts:
 - **Data Crawling:** The `scrape.py` script uses Selenium with ChromeDriver to navigate to the Chicago crime dashboard, interact with UI elements (like the three-dots and export buttons), and download the dataset.
-- **Data Preprocessing & Visualization:** The `preprocess.ipynb` Jupyter Notebook reads and cleans the crawled data, then creates various visualizations (e.g., bar plots, heatmaps, trend analyses) to showcase crime patterns over the years.
-- **Crime Rate Prediction:** The `pred.py`file for impementing all the machine learning models used for this project.
+- **Data Preprocessing:** The `crim_rate_preprocessing.ipynb` Jupyter Notebook reads and cleans the crawled data, performing necessary transformations and feature engineering.
+- **Data Analysis & Visualization:** The `crime_rate_analysis.ipynb` Jupyter Notebook creates various visualizations (e.g., bar plots, heatmaps, trend analyses) to showcase crime patterns over the years.
+- **Crime Rate Prediction:** The `pred.py` file for implementing all the machine learning models used for this project.
 
 ## Project Structure
 ```
 ├── scrape.py                 # Data crawling script
 ├── pred.py                   # Python file for predicting crime rate
-├── preprocess.ipynb          # Notebook for data cleaning and visualization
-├── datasets/                 # Folder for crawled datasets
+├── crime_rate_preprocessing.ipynb  # Notebook for data cleaning and preprocessing
+├── crime_rate_analysis.ipynb      # Notebook for data analysis and visualization
+├── datasets/                 # Folder for datasets
+│   ├── crawled_data.csv      # Raw crawled data
+│   └── cleaned_crime_data.csv # Preprocessed data
 ├── Resources and Demo/       # Demo assets including plots, videos, and project pipeline PDF
 │   ├── assault_plot.png
 │   ├── Crawled Data Example.png
@@ -49,20 +53,29 @@ Run the `scrape.py` script to start the crawling process:
    python scrape.py
    ```
 
-### 2. Processing and Visualizing Data
-1. Open the `preprocess.ipynb` notebook in Jupyter or VS Code.
+### 2. Data Preprocessing
+1. Open the `crim_rate_preprocessing.ipynb` notebook in Jupyter or VS Code.
 2. Execute the notebook cells sequentially:
-   - The notebook reads the crawled data from `./datasets/crawled_data.csv`.
-   - Processes and cleans the data.
-   - Generates various visualizations (e.g., crime type distributions, yearly trends, monthly trends, heatmaps).
-   - Aggregates geographic data by using Pydeck based on logitude and latitude in Chicago, rounded to the 3rd decimal.
+   - The notebook reads the raw data from `./datasets/crawled_data.csv`
+   - Performs data cleaning and preprocessing
+   - Creates new features and aggregates data
+   - Saves the cleaned data to `./datasets/cleaned_crime_data.csv`
+
+### 3. Data Analysis and Visualization
+1. Open the `crime_rate_analysis.ipynb` notebook in Jupyter or VS Code.
+2. Execute the notebook cells sequentially:
+   - The notebook reads the preprocessed data from `./datasets/cleaned_crime_data.csv`
+   - Generates various visualizations:
+     - Crime type distributions
+     - Yearly and monthly trends
+     - Location-based analysis
+     - Geographic heatmaps using Pydeck
 
     ### Pydeck Map Details
     - **Interactive Features:** Hovering over a column displays tooltips with the crime count and location.
     - **View State:** The map is centered on Chicago (latitude 41.8781, longitude -87.6298) with a zoom level of 10 for a city-level view.
 
-
-### 3. Crime rate prediction using KNN, Random Forest, Naive Bayes, and XGBoost
+### 4. Crime Rate Prediction using KNN, Random Forest, Naive Bayes, and XGBoost
 #### ---> WIP (Work In Progress)
 
 ## Demonstration Resources
