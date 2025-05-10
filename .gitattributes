@@ -9,3 +9,4 @@
 *.gz filter=lfs diff=lfs merge=lfs
 *.rar filter=lfs diff=lfs merge=lfs
 *.7z filter=lfs diff=lfs merge=lfs
+*.bin filter=lfs diff=lfs merge=lfs -text
