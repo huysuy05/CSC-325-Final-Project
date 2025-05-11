@@ -75,7 +75,7 @@ Run the `scrape.py` script to start the crawling process:
     - **Interactive Features:** Hovering over a column displays tooltips with the crime count and location.
     - **View State:** The map is centered on Chicago (latitude 41.8781, longitude -87.6298) with a zoom level of 10 for a city-level view.
 
-### 4. Crime Rate Prediction using KNN, Random Forest, Naive Bayes, and XGBoost
+### 4. Crime Rate Prediction using KNN, Random Forest, Decision Tree, Logistic Regression, and XGBoost
 #### ---> WIP (Work In Progress)
 
 ## Demonstration Resources
