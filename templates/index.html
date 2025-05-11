@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chicago Crime Primary Type Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #90caf9 0%, #e3f2fd 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .prediction-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .result-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .header-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1, p {
+            color: #1a237e;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='imgs/chicago.jpg') }}" alt="Chicago Skyline" class="header-image">
+        <h1 class="text-center mb-4">Chicago Crime Primary Type Prediction</h1>
+        <p class="text-center text-muted mb-4">Predict the primary type of crime that might occur based on location</p>
+        
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="prediction-card">
+                    <form id="predictionForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="model">Select Prediction Model:</label>
+                                    <select class="form-select" id="model" name="model" required>
+                                        <option value="Logistic_Regression">Logistic Regression</option>
+                                        <option value="KNN">K-Nearest Neighbors</option>
+                                        <option value="Decision_Tree">Decision Tree</option>
+                                        <option value="Random_Forest">Random Forest</option>
+                                        <option value="XGBoost">XGBoost</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="generalized_loc">Generalized Location:</label>
+                                    <select class="form-select" id="generalized_loc" name="generalized_loc" required>
+                                        <option value="Airport">Airport</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Institutional">Institutional</option>
+                                        <option value="Other">Other</option>
+                                        <option value="Public Transportation">Public Transportation</option>
+                                        <option value="Residential">Residential</option>
+                                        <option value="Street/Outdoor">Street/Outdoor</option>
+                                        <option value="Vehicle">Vehicle</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Month">Month:</label>
+                                    <select class="form-select" id="Month" name="Month" required>
+                                        {% for i in range(1, 13) %}
+                                        <option value="{{ i }}">{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Year">Year:</label>
+                                    <select class="form-select" id="Year" name="Year" required>
+                                        {% for i in range(2020, 2026) %}
+                                        <option value="{{ i }}">{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="domestic">Is this a Domestic Incident?</label>
+                                    <select class="form-select" id="domestic" name="domestic" required>
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="arrest">Was there an Arrest?</label>
+                                    <select class="form-select" id="arrest" name="arrest" required>
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="location_crime_count">Location Crime Count:</label>
+                                    <input type="number" class="form-control" id="location_crime_count" name="location_crime_count" required min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="primary_type_count">Primary Type Count:</label>
+                                    <input type="number" class="form-control" id="primary_type_count" name="primary_type_count" required min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="District">District:</label>
+                                    <select class="form-select" id="District" name="District" required>
+                                        {% for district in districts %}
+                                        <option value="{{ district }}">{{ district }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Community Area">Community Area:</label>
+                                    <select class="form-select" id="Community Area" name="Community Area" required>
+                                        {% for area in community_areas %}
+                                        <option value="{{ area }}">{{ area }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Predict Primary Crime Type</button>
+                        </div>
+                    </form>
+
+                    <div class="loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Analyzing crime patterns...</p>
+                    </div>
+
+                    <div class="result-section">
+                        <h3 class="text-center mb-3">Prediction Result</h3>
+                        <div class="alert" role="alert">
+                            <h4 class="alert-heading" id="predictionResult"></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#predictionForm').on('submit', function(e) {
+                e.preventDefault();
+                console.log('Form submitted');
+                
+                // Validate numeric inputs
+                const locationCount = $('#location_crime_count').val();
+                const primaryTypeCount = $('#primary_type_count').val();
+                
+                if (!Number.isInteger(Number(locationCount)) || !Number.isInteger(Number(primaryTypeCount))) {
+                    alert('Please enter valid integers for Location Crime Count and Primary Type Count');
+                    return;
+                }
+                
+                console.log('Form data:', $(this).serialize());
+                
+                $('.loading').show();
+                $('.result-section').hide();
+                
+                $.ajax({
+                    url: '/predict',
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        console.log('Success response:', response);
+                        $('.loading').hide();
+                        $('.result-section').show();
+                        
+                        const prediction = response.prediction;
+                        $('#predictionResult').text(`Predicted Primary Crime Type: ${prediction}`);
+                        $('.alert').removeClass('alert-success alert-warning alert-danger').addClass('alert-info');
+                    },
+                    error: function(xhr) {
+                        console.log('Error response:', xhr.responseJSON);
+                        $('.loading').hide();
+                        $('.result-section').show();
+                        $('#predictionResult').text('Error occurred: ' + xhr.responseJSON.error);
+                        $('.alert').removeClass('alert-success alert-warning alert-info').addClass('alert-danger');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
