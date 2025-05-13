@@ -20,7 +20,6 @@ def load_model(model_name):
     
     # Map form model names to file names
     model_file_map = {
-        'Logistic_Regression': 'logisticregression.bin',
         'KNN': 'knnclassifier.bin',
         'Decision_Tree': 'decisiontreeclassifier.bin',
         'Random_Forest': 'randomforestclassifier.bin',
